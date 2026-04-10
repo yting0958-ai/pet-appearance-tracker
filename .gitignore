@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.log
+tracker_data.json
+pet_data.json
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

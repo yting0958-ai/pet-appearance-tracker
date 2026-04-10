@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐾 宠物外观版本测试跟踪器</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--accent:#6366f1;--accent2:#818cf8;--pass:#22c55e;--fail:#ef4444;--pending:#f59e0b;--skip:#64748b;--na:#8b5cf6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#1e1b4b,#312e81,#4338ca);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.header h1{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.header-right{display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:6px 14px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:4px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}.btn-outline:hover{background:var(--card)}
+.btn-purple{background:#8b5cf6;color:#fff}.btn-purple:hover{background:#7c3aed}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+.vtabs{display:flex;gap:6px;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;flex-wrap:wrap}
+.vtab{padding:5px 14px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);white-space:nowrap;transition:all .2s;position:relative}
+.vtab:hover{border-color:var(--accent);color:var(--text)}.vtab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.vtab .vtab-edit{display:none;margin-left:4px;font-size:10px;cursor:pointer;opacity:.6}.vtab:hover .vtab-edit{display:inline}
+.vtab-add{width:26px;height:26px;border-radius:50%;border:2px dashed var(--border);background:transparent;color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.vtab-add:hover{border-color:var(--accent);color:var(--accent)}
+
+.stats-bar{display:flex;gap:16px;padding:10px 24px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
+.stats-bar .sv{font-weight:700;margin-right:2px}
+.stats-bar .sp{color:var(--pass)}.stats-bar .sf{color:var(--fail)}.stats-bar .sw{color:var(--pending)}.stats-bar .sa{color:var(--accent2)}
+.prog-mini{width:200px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:flex}
+.prog-mini .pp{background:var(--pass);transition:width .4s}.prog-mini .pf{background:var(--fail);transition:width .4s}.prog-mini .pw{background:var(--pending);transition:width .4s}
+
+.data-status{padding:4px 24px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.data-dot{width:7px;height:7px;border-radius:50%;background:var(--pass);display:inline-block}.data-dot.empty{background:var(--fail)}
+
+.table-wrap{padding:10px 24px 40px;overflow-x:auto;max-height:calc(100vh - 160px);overflow-y:auto}
+table.mt{border-collapse:separate;border-spacing:0;min-width:100%}
+table.mt th,table.mt td{border:1px solid var(--border);padding:0;vertical-align:middle;text-align:center}
+
+.cat-row td{background:linear-gradient(90deg,rgba(99,102,241,.12),transparent)!important;padding:5px 12px!important;font-size:11px;font-weight:800;letter-spacing:1px;border:none!important;border-bottom:2px solid var(--border)!important}
+.cat-row .cat-label{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:4px;font-size:11px}
+.rh{position:sticky;left:0;z-index:10;background:var(--card);text-align:left!important;padding:6px 10px!important;font-size:12px;font-weight:600;min-width:220px;max-width:280px;white-space:normal;line-height:1.4}
+.rh.gh{background:linear-gradient(135deg,rgba(99,102,241,.10),rgba(139,92,246,.04));color:var(--accent2);font-weight:700;font-size:11px;cursor:default}
+
+.ch{min-width:115px;max-width:135px;padding:6px 4px!important;background:var(--card);position:sticky;top:0;z-index:20}
+.corner{position:sticky;left:0;top:0;z-index:30;background:var(--card);min-width:220px;padding:8px!important}
+
+.pcol{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pav{width:80px;height:80px;border-radius:10px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;cursor:pointer;position:relative;border:2px solid transparent;transition:border-color .2s}
+.pav:hover{border-color:var(--accent)}
+.pav.av-selected{border-color:#22d3ee!important;box-shadow:0 0 0 3px rgba(34,211,238,.35);animation:av-pulse 1.5s infinite}
+@keyframes av-pulse{0%,100%{box-shadow:0 0 0 3px rgba(34,211,238,.35)}50%{box-shadow:0 0 0 5px rgba(34,211,238,.18)}}
+.pav img{width:100%;height:100%;object-fit:cover}
+.pav .avh{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;font-size:10px;color:#fff;pointer-events:none;gap:2px;line-height:1.3}
+.pav:hover .avh{opacity:1}
+.pav.av-selected .avh{opacity:1;background:rgba(0,180,220,.25)}
+.pav .av-zoom{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:5px;background:rgba(0,0,0,.55);border:none;color:#fff;font-size:12px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:3;transition:background .15s;line-height:1}
+.pav:hover .av-zoom{display:flex}
+.pav .av-zoom:hover{background:rgba(99,102,241,.8)}
+
+.lightbox{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.lightbox.show{display:flex}
+.lightbox-img{max-width:85vw;max-height:72vh;border-radius:14px;box-shadow:0 12px 60px rgba(0,0,0,.6);object-fit:contain;transition:transform .2s;cursor:zoom-in}
+.lightbox-img.zoomed{transform:scale(2);cursor:zoom-out}
+.lightbox-name{font-size:16px;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.lightbox-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.lightbox-close{position:absolute;top:18px;right:24px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.lightbox-close:hover{background:rgba(255,255,255,.25)}
+.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.lightbox-nav:hover{background:rgba(255,255,255,.22)}
+.lightbox-nav.prev{left:20px}
+.lightbox-nav.next{right:20px}
+.lightbox-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,.4)}
+.pnm{font-size:11px;font-weight:700;max-width:110px;text-align:center;word-break:break-all;line-height:1.3}
+.ptags{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.ptag{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600}
+.t-legend{background:rgba(234,179,8,.2);color:#eab308}.t-epic{background:rgba(168,85,247,.2);color:#a855f7}
+.t-rare{background:rgba(59,130,246,.2);color:#3b82f6}.t-ling{background:rgba(236,72,153,.2);color:#ec4899}
+.t-type{background:rgba(99,102,241,.15);color:#818cf8}
+.pprog{font-size:10px;font-weight:700}
+.pacts{display:flex;gap:2px;margin-top:2px}
+.pa{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);padding:1px;border-radius:3px;transition:all .15s}
+.pa:hover{color:var(--accent2);background:rgba(99,102,241,.1)}
+.pa.del:hover{color:var(--fail);background:rgba(239,68,68,.1)}
+
+.cell{min-height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:600;padding:4px;transition:background .1s;user-select:none;min-width:115px;position:relative}
+.cell:hover{background:rgba(255,255,255,.04)}
+.cell.s-pass{color:var(--pass)}.cell.s-fail{color:var(--fail);background:rgba(239,68,68,.06)}
+.cell.s-pending{color:var(--pending)}.cell.s-na{color:var(--skip)}
+.cell .cell-note{position:absolute;top:1px;right:2px;font-size:8px;color:var(--pending);cursor:pointer;opacity:.6}
+.cell .cell-note:hover{opacity:1}
+.cell.has-note::after{content:'';position:absolute;top:2px;right:2px;width:0;height:0;border-left:5px solid transparent;border-top:5px solid var(--pending)}
+
+.cell .bug-link{position:absolute;bottom:1px;right:2px;font-size:10px;text-decoration:none;color:var(--fail);opacity:.7;cursor:pointer;z-index:2}
+.cell .bug-link:hover{opacity:1;text-decoration:underline}
+.cell.s-fail .bug-hint{position:absolute;bottom:1px;left:2px;font-size:8px;color:var(--muted);opacity:.4;pointer-events:none}
+
+.pav.av-selected{border-color:var(--accent)!important;box-shadow:0 0 0 2px rgba(99,102,241,.4)}
+.pav .avh-sel{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;color:#a5f3fc;opacity:0;transition:opacity .15s;pointer-events:none}
+.pav.av-selected .avh-sel{opacity:1}
+
+.ctx-menu{position:fixed;z-index:250;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 0;min-width:160px;box-shadow:0 8px 30px rgba(0,0,0,.4);font-size:12px}
+.ctx-menu .ctx-item{padding:6px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text);transition:background .1s}
+.ctx-menu .ctx-item:hover{background:rgba(99,102,241,.12)}
+.ctx-menu .ctx-sep{height:1px;background:var(--border);margin:3px 0}
+
+.ra{display:flex;gap:2px;opacity:0;transition:opacity .12s;position:absolute;right:4px;top:50%;transform:translateY(-50%)}
+.rh:hover .ra{opacity:1}
+.rab{width:18px;height:18px;border:none;border-radius:3px;background:transparent;color:var(--muted);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all .12s;padding:0}
+.rab:hover{background:rgba(99,102,241,.15);color:var(--accent2)}
+.rab.del:hover{background:rgba(239,68,68,.12);color:var(--fail)}
+
+.empty{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty .big{font-size:60px;margin-bottom:12px}
+
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:200;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;width:90%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 50px rgba(0,0,0,.4)}
+.modal h2{font-size:16px;margin-bottom:14px}
+.fg{margin-bottom:12px}.fg label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 10px;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:inherit}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--accent)}
+.fg select{cursor:pointer}.fg select option{background:var(--card);color:var(--text)}
+.factions{display:flex;gap:6px;justify-content:flex-end;margin-top:16px}
+
+.ptable{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.ptable th{color:var(--accent2);padding:4px;text-align:left;border-bottom:1px solid var(--border)}
+.ptable td{padding:4px;border-bottom:1px solid rgba(255,255,255,.04)}
+
+.season-pills{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.season-pill{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.season-pill:hover{border-color:var(--accent);color:var(--text)}.season-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:8px 18px;background:var(--pass);color:#fff;border-radius:7px;font-size:12px;font-weight:600;transform:translateY(80px);opacity:0;transition:all .3s;z-index:300;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.toast.show{transform:translateY(0);opacity:1}
+@media(max-width:768px){.header{padding:10px}.table-wrap{padding:6px 10px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🐾 宠物外观版本测试跟踪器</h1>
+  <div class="header-right">
+    <button class="btn btn-outline btn-sm" onclick="exportAll()">📥 导出</button>
+    <button class="btn btn-outline btn-sm" onclick="importAll()">📤 导入</button>
+    <button class="btn btn-purple btn-sm" onclick="showLoadModal()">🔄 载入版本宠物</button>
+    <button class="btn btn-primary btn-sm" onclick="showAddPetModal()">＋ 新增宠物</button>
+  </div>
+</div>
+
+<div class="vtabs" id="vtabs"></div>
+<div class="data-status" id="dataStatus"></div>
+<div class="stats-bar" id="statsBar"></div>
+<div class="table-wrap" id="tableWrap"></div>
+
+<!-- Load Modal -->
+<div class="modal-bg" id="loadModal">
+<div class="modal" style="max-width:620px">
+  <h2>🔄 从策划表载入版本宠物外观</h2>
+  <p style="font-size:11px;color:var(--muted);margin-bottom:10px">查询 AnimalPet_AppearanceFactor 表, 筛选开放赛季 + ClassName=body</p>
+  <div class="fg">
+    <label>赛季版本号 *</label>
+    <input id="loadSeasonInput" placeholder="例: 333 或 3.3.3">
+    <div id="seasonPills" class="season-pills"></div>
+  </div>
+  <div class="fg"><label>载入方式</label><select id="loadMode"><option value="current">载入到当前版本</option><option value="new">创建新版本并载入</option></select></div>
+  <div id="loadPreview" style="display:none">
+    <div id="loadPreviewContent" style="max-height:220px;overflow-y:auto;background:rgba(0,0,0,.15);border-radius:6px;padding:8px"></div>
+  </div>
+  <div class="factions">
+    <button class="btn btn-outline btn-sm" onclick="closeModal('loadModal')">取消</button>
+    <button class="btn btn-purple btn-sm" onclick="doLoadQuery()" id="loadQueryBtn">🔍 查询</button>
+    <button class="btn btn-primary btn-sm" onclick="doLoadConfirm()" id="loadConfirmBtn" style="display:none">✅ 确认载入</button>
+  </div>
+</div>
+</div>
+
+<!-- Add Pet Modal -->
+<div class="modal-bg" id="addPetModal">
+<div class="modal">
+  <h2>✨ 新增宠物外观</h2>
+  <div class="fg"><label>名称 *</label><input id="f_name" placeholder="例: 冰蓝水灵"></div>
+  <div class="fg"><label>模板ID</label><input id="f_tid" placeholder="例: 36600004"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div class="fg"><label>稀有度</label><select id="f_rarity"><option>典藏珍</option><option>典藏</option><option>稀有</option><option>灵宠</option></select></div>
+    <div class="fg"><label>类型</label><select id="f_type"><option>普通</option><option>灵宠</option><option>联动</option><option>耳洞偏色</option></select></div>
+  </div>
+  <div class="fg"><label>头像URL</label><input id="f_avatar" placeholder="可选, 也可在表格头像上粘贴图片"></div>
+  <div class="fg"><label>获取方式</label><input id="f_source" placeholder="例: 商店 / 副本掉落"></div>
+  <div class="factions">
+    <button class="btn btn-outline btn-sm" onclick="closeModal('addPetModal')">取消</button>
+    <button class="btn btn-primary btn-sm" onclick="addPet()">确认添加</button>
+  </div>
+</div>
+</div>
+
+<!-- Add Version Modal -->
+<div class="modal-bg" id="addVerModal">
+<div class="modal">
+  <h2>📦 新增版本</h2>
+  <div class="fg"><label>版本号 *</label><input id="f_ver" placeholder="例: S12赛季"></div>
+  <div class="factions">
+    <button class="btn btn-outline btn-sm" onclick="closeModal('addVerModal')">取消</button>
+    <button class="btn btn-primary btn-sm" onclick="addVersion()">确认</button>
+  </div>
+</div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="lbClickBg(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav prev" onclick="lbNav(-1)">‹</button>
+  <button class="lightbox-nav next" onclick="lbNav(1)">›</button>
+  <img class="lightbox-img" id="lbImg" onclick="lbToggleZoom()" src="" alt="">
+  <div class="lightbox-name" id="lbName"></div>
+  <div class="lightbox-sub" id="lbSub"></div>
+  <div class="lightbox-counter" id="lbCounter"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept=".json" style="display:none" onchange="handleImport(event)">
+<input type="file" id="avIn" accept="image/*" style="display:none" onchange="handleAvFile(event)">
+
+<script>
+const API='';
+const CAT_COLORS={'策划配置':'#6366f1','美术资源':'#a855f7','界面功能':'#eab308','投放验证':'#f97316','特殊专项':'#ec4899'};
+const DEFAULT_GROUPS=[
+  // 一、策划配置 (7)
+  {id:'cfg_factor',cat:'策划配置',title:'外观因子表（因子ID、名称、稀有等级、类型、资源路径、分块名、头像）',color:'#818cf8'},
+  {id:'cfg_pet',cat:'策划配置',title:'Pet模板表（模板ID、名称、种类、获得方式、流程图、怪物ID、外观ID）',color:'#818cf8'},
+  {id:'cfg_item',cat:'策划配置',title:'Item道具表（编号、名称、说明、类型、使用后action）',color:'#818cf8'},
+  {id:'cfg_season',cat:'策划配置',title:'外放状态与开放赛季（不外放=3，当前版本正常）',color:'#818cf8'},
+  {id:'cfg_score',cat:'策划配置',title:'衣品值配置（灵宠4000/典藏珍400/典藏120）',color:'#818cf8'},
+  {id:'cfg_intimacy',cat:'策划配置',title:'亲密度配置（等级、称呼、描述、触发action）',color:'#818cf8'},
+  {id:'cfg_setting',cat:'策划配置',title:'Setting配置（名字、数值、表值）',color:'#818cf8'},
+  // 二、美术资源 (6)
+  {id:'art_model',cat:'美术资源',title:'模型检查（原画一致、无穿插、体型适配、舆论风险）',color:'#c084fc'},
+  {id:'art_vfx',cat:'美术资源',title:'特效检查（拖尾、粒子、叠加效果）',color:'#c084fc'},
+  {id:'art_action',cat:'美术资源',title:'动作检查（预期效果、体型适配、时机连贯）',color:'#c084fc'},
+  {id:'art_world',cat:'美术资源',title:'大世界表现（模型/闪光/异色/第三人称）',color:'#c084fc'},
+  {id:'art_page',cat:'美术资源',title:'主页场景（个人主页+宠物主页，无过曝过暗）',color:'#c084fc'},
+  {id:'art_env',cat:'美术资源',title:'天气与画质（雨雪反射影子 × 三档画质）',color:'#c084fc'},
+  // 三、界面功能 (8)
+  {id:'ui_icon',cat:'界面功能',title:'图标显示（未获得灰色、已获得正确图标+动效）',color:'#fbbf24'},
+  {id:'ui_info',cat:'界面功能',title:'数据面板与图鉴（数据显示、图鉴信息、萌爪商店）',color:'#fbbf24'},
+  {id:'ui_summon',cat:'界面功能',title:'召唤状态标识（右下角标记）',color:'#fbbf24'},
+  {id:'ui_page',cat:'界面功能',title:'分享功能与详情跳转',color:'#fbbf24'},
+  {id:'ui_values',cat:'界面功能',title:'亲密度与元气值（显示、描述、消耗）',color:'#fbbf24'},
+  {id:'ui_trait',cat:'界面功能',title:'特质图标与描述',color:'#fbbf24'},
+  {id:'ui_rename',cat:'界面功能',title:'认名功能（语音、动作、互动表情）',color:'#fbbf24'},
+  {id:'ui_gender',cat:'界面功能',title:'性别显示（与图鉴一致，联动IP与原作一致）',color:'#fbbf24'},
+  // 四、投放验证 (5)
+  {id:'drop_factor',cat:'投放验证',title:'投放外观因子验证（与预期符合、无错漏）',color:'#fb923c'},
+  {id:'drop_way',cat:'投放验证',title:'获得方式验证（商店/副本/捕捉等）',color:'#fb923c'},
+  {id:'drop_trait',cat:'投放验证',title:'投放特质验证（与预期符合、同档一致）',color:'#fb923c'},
+  {id:'drop_item',cat:'投放验证',title:'Item使用获得宠物',color:'#fb923c'},
+  {id:'drop_appear',cat:'投放验证',title:'投放头像与性别（头像与模型一致、性别正确）',color:'#fb923c'},
+  // 五、特殊专项 (8)
+  {id:'sp_mvp',cat:'特殊专项',title:'灵宠：MVP动画+表情动作',color:'#f472b6'},
+  {id:'sp_ring',cat:'特殊专项',title:'灵宠：背环效果',color:'#f472b6'},
+  {id:'sp_dynamic',cat:'特殊专项',title:'灵宠：动特效果',color:'#f472b6'},
+  {id:'sp_motion',cat:'特殊专项',title:'灵宠：休闲与飞行动作',color:'#f472b6'},
+  {id:'sp_backpack',cat:'特殊专项',title:'灵宠：背包格子显示',color:'#f472b6'},
+  {id:'sp_highlight',cat:'特殊专项',title:'灵宠：卖点动作',color:'#f472b6'},
+  {id:'sp_fubao',cat:'特殊专项',title:'福宝宝：额外休闲待机动作',color:'#f472b6'},
+  {id:'sp_dye',cat:'特殊专项',title:'萌萌泥：染色功能',color:'#f472b6'},
+];
+
+const RANK_MAP={1:'普通',2:'精良',3:'稀有',4:'典藏',5:'典藏珍',6:'灵宠',7:'典藏·极'};
+const TYPE_MAP={1:'猫',2:'狗',3:'企鹅',4:'兔子',5:'鹿',6:'狐狸',7:'凤凰',8:'鹰',9:'逆崽',10:'八爪鱼',11:'hentai',12:'灵宠',13:'萌萌泥',14:'福宝宝',15:'绒绒',16:'皮皮鼠',17:'小松鼠'};
+const EMOJI_MAP={'灵宠':'🐲','联动':'🌟','异世':'🔮','繁育偏色':'🎨','普通':'🐾'};
+function r2rarity(r){return r>=6?'灵宠':r===5?'典藏珍':r===4?'典藏':'稀有'}
+function r2petType(pt){return pt===12?'灵宠':pt===11?'异世':'普通'}
+function normSeason(s){s=s.trim();if(/^\d{3,}$/.test(s)&&!s.includes('.'))return s.split('').join('.');return s}
+
+let app={versions:[],currentVersion:null}, loadCache=[];
+function curVer(){return app.versions.find(v=>v.id===app.currentVersion)}
+function getGroups(){const v=curVer();return(v&&v.checkGroups&&v.checkGroups.length)?v.checkGroups:DEFAULT_GROUPS}
+function ensureGroups(){const v=curVer();if(v&&(!v.checkGroups||!v.checkGroups.length))v.checkGroups=JSON.parse(JSON.stringify(DEFAULT_GROUPS))}
+
+async function loadFromServer(){
+  try{const r=await fetch(API+'/api/tracker');const d=await r.json();if(d.success&&d.data&&d.data.versions)app=d.data}catch(e){
+    const s=localStorage.getItem('pet_tracker_v3');if(s)app=JSON.parse(s);
+  }
+  if(!app.versions.length)app.versions=[{id:'v1',name:'默认版本',pets:[],checkGroups:JSON.parse(JSON.stringify(DEFAULT_GROUPS))}];
+  if(!app.currentVersion)app.currentVersion=app.versions[0].id;
+}
+async function saveToServer(){
+  localStorage.setItem('pet_tracker_v3',JSON.stringify(app));
+  try{await fetch(API+'/api/tracker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(app)})}catch(e){}
+}
+async function loadDataStatus(){
+  try{const r=await fetch(API+'/api/all_seasons');const d=await r.json();
+    if(d.success)document.getElementById('dataStatus').innerHTML=`<span class="data-dot"></span> 策划表: ${d.total_pets}条, ${d.seasons.length}赛季`
+  }catch(e){document.getElementById('dataStatus').innerHTML=`<span class="data-dot empty"></span> 后端未连接`}
+}
+
+function render(){renderTabs();renderStats();renderTable();saveToServer()}
+
+function renderTabs(){
+  let h='';app.versions.forEach((v,vi)=>{h+=`<div class="vtab${v.id===app.currentVersion?' active':''}" onclick="switchVer('${v.id}')">${v.name}<span style="opacity:.5;font-size:10px;margin-left:4px">(${v.pets.length})</span><span class="vtab-edit" onclick="event.stopPropagation();editVerName(${vi})">✏️</span></div>`});
+  h+=`<button class="vtab-add" onclick="showModal('addVerModal')">＋</button>`;
+  document.getElementById('vtabs').innerHTML=h;
+}
+function editVerName(vi){
+  const v=app.versions[vi];const n=prompt('编辑版本名称:',v.name);
+  if(!n||!n.trim())return;v.name=n.trim();render();toast('版本名已更新');
+}
+
+function renderStats(){
+  const v=curVer();if(!v)return;
+  const gs=getGroups();let total=0,pass=0,fail=0;
+  v.pets.forEach(p=>{gs.forEach(g=>{const s=(p.checks&&p.checks[g.id])||'';if(s==='na')return;total++;if(s==='pass')pass++;else if(s==='fail')fail++})});
+  const pend=total-pass-fail,pct=total?Math.round(pass/total*100):0;
+  document.getElementById('statsBar').innerHTML=`
+    <span><span class="sv sa">${v.pets.length}</span>宠物</span>
+    <span><span class="sv sp">${pass}</span>通过</span>
+    <span><span class="sv sf">${fail}</span>失败</span>
+    <span><span class="sv sw">${pend}</span>待测</span>
+    <span><span class="sv sa">${pct}%</span></span>
+    <div class="prog-mini"><div class="pp" style="width:${total?pass/total*100:0}%"></div><div class="pf" style="width:${total?fail/total*100:0}%"></div><div class="pw" style="width:${total?pend/total*100:0}%"></div></div>
+    <button class="btn btn-outline btn-sm" onclick="addGroupRow()" style="margin-left:auto">＋ 新增检查行</button>`;
+}
+
+function renderTable(){
+  const v=curVer();
+  if(!v){document.getElementById('tableWrap').innerHTML='<div class="empty"><div class="big">📦</div>请先创建版本</div>';return}
+  if(!v.pets.length){document.getElementById('tableWrap').innerHTML='<div class="empty"><div class="big">🐣</div><div style="font-size:15px;margin-bottom:8px">暂无宠物</div><div style="font-size:12px">点击「载入版本宠物」或「新增宠物」开始</div></div>';return}
+  const gs=getGroups(), pets=v.pets;
+  let h='<table class="mt"><thead><tr>';
+  h+='<th class="corner rh" style="text-align:center;font-size:11px;color:var(--muted)">检查项 \\ 宠物</th>';
+  // Pet columns
+  pets.forEach((p,pi)=>{
+    const rc={'灵宠':'t-ling','典藏珍':'t-legend','典藏':'t-epic','稀有':'t-rare'}[p.rarity]||'t-type';
+    const prog=getProg(p,gs),fc=getFails(p,gs),ap=prog===100&&fc===0;
+    const av=p.avatar?`<img src="${p.avatar}">`:(EMOJI_MAP[p.petType]||'🐾');
+    const zoomBtn=p.avatar?`<button class="av-zoom" onclick="event.stopPropagation();openLightbox(${pi})" title="放大查看">🔍</button>`:'';
+    h+=`<th class="ch"><div class="pcol">
+      <div class="pav${avIdx===pi?' av-selected':''}" id="av-${pi}" onclick="selectAv(event,${pi})" ondblclick="dblClickAv(${pi})" tabindex="0">${av}${zoomBtn}<div class="avh">📷 单击选中<br>Ctrl+V粘贴<br>双击选文件</div></div>
+      <div class="pnm">${p.name}</div>
+      <div class="ptags"><span class="ptag ${rc}">${p.rarity}</span></div>
+      <div class="pprog" style="color:${fc?'var(--fail)':ap?'var(--pass)':'var(--pending)'}">${prog}%${fc?' ✗'+fc:ap?' ✓':''}</div>
+      <div class="pacts">
+        <button class="pa" title="全Pass" onclick="batchAll(${pi},'pass')">✅</button>
+        <button class="pa" title="全N/A" onclick="batchAll(${pi},'na')">⊘</button>
+        <button class="pa" title="重置" onclick="resetPet(${pi})">🔄</button>
+        <button class="pa del" title="删除" onclick="delPet(${pi})">🗑</button>
+      </div>
+    </div></th>`;
+  });
+  h+='</tr></thead><tbody>';
+  // 获取方式 row
+  const SRC_OPTS=['商店','捕捉','繁育','联动活动','自定义'];
+  h+='<tr><td class="rh" style="font-style:italic;color:var(--pending)">获取方式</td>';
+  pets.forEach((p,pi)=>{
+    const cur=p.source||'';
+    const isCustom=cur&&!SRC_OPTS.includes(cur);
+    let opts=SRC_OPTS.map(o=>`<option value="${o}"${cur===o?' selected':''}>${o}</option>`).join('');
+    opts=`<option value=""${!cur?' selected':''}>—</option>`+opts;
+    if(isCustom)opts+=`<option value="${cur}" selected>${cur}</option>`;
+    h+=`<td><div style="display:flex;flex-direction:column;gap:2px;padding:2px">
+      <select class="src-sel" onchange="saveSrcSel(${pi},this)" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:10px;padding:2px 4px;cursor:pointer;outline:none">${opts}</select>
+      <input class="src-custom" placeholder="自定义内容…" value="${isCustom||cur==='自定义'?(isCustom?cur:''):''}" onblur="saveSrcCustom(${pi},this)" style="display:${cur==='自定义'||isCustom?'block':'none'};background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:10px;padding:2px 4px;outline:none;width:100%;box-sizing:border-box">
+    </div></td>`;
+  });
+  h+='</tr>';
+  // Check rows — with category header rows
+  let lastCat='';
+  const catIcons={'策划配置':'📋','美术资源':'🎨','界面功能':'🖥️','投放验证':'📦','特殊专项':'⭐'};
+  gs.forEach((g,gi)=>{
+    const thisCat=g.cat||'';
+    if(thisCat&&thisCat!==lastCat){
+      const cc=CAT_COLORS[thisCat]||'#6366f1';
+      const ci=catIcons[thisCat]||'📌';
+      // Count items in this category
+      let span=0;for(let j=gi;j<gs.length;j++){if((gs[j].cat||'')===thisCat)span++;else break}
+      h+=`<tr class="cat-row"><td colspan="${pets.length+1}" style="border-left:4px solid ${cc}"><span class="cat-label" style="color:${cc};background:${cc}15">${ci} <span contenteditable="true" spellcheck="false" onblur="renameCat('${thisCat}',this.textContent)" style="outline:none;cursor:text">${thisCat}</span></span> <span style="font-size:10px;color:var(--muted);font-weight:400">(${span}项)</span></td></tr>`;
+      lastCat=thisCat;
+    }
+    h+=`<tr><td class="rh gh" style="border-left:3px solid ${g.color};position:relative">${g.title}
+      <span class="ra"><button class="rab" title="编辑" onclick="editGrp(${gi})">✏️</button><button class="rab del" title="删除" onclick="delGrp(${gi})">✕</button></span>
+    </td>`;
+    pets.forEach((p,pi)=>{
+      const s=(p.checks&&p.checks[g.id])||'';
+      const cls=s==='pass'?'s-pass':s==='fail'?'s-fail':s==='pending'?'s-pending':s==='na'?'s-na':'';
+      const txt=s==='pass'?'pass':s==='fail'?'✗ fail':s==='pending'?'待测':s==='na'?'N/A':'—';
+      const noteKey=g.id+'__'+pi;
+      const hasNote=p.notes&&p.notes[noteKey];
+      const bugKey='bug__'+g.id+'__'+pi;
+      const hasBug=p.bugs&&p.bugs[bugKey];
+      let cellInner=txt;
+      const bugUrl=hasBug?bugTextToUrl(hasBug):'';
+      if(hasBug)cellInner+=`<span class="bug-link" data-bug="${encodeURIComponent(hasBug)}" onclick="event.stopPropagation();clickBugLink(this)" title="${hasBug}${bugUrl?'\n→ '+bugUrl:''}">🔗</span>`;
+      else if(s==='fail')cellInner+='<span class="bug-hint">右键关联bug</span>';
+      h+=`<td><div class="cell ${cls}${hasNote?' has-note':''}" onclick="cycleCell(${pi},'${g.id}')" oncontextmenu="showCtxMenu(event,${pi},'${g.id}')" title="${hasNote?'备注: '+hasNote.replace(/"/g,'&quot;'):'右键操作'}">${cellInner}</div></td>`;
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('tableWrap').innerHTML=h;
+  // Paste listeners
+  pets.forEach((p,pi)=>{
+    const el=document.getElementById('av-'+pi);
+    if(!el)return;
+    el.addEventListener('paste',e=>onPaste(e,pi));
+    el.addEventListener('dragover',e=>{e.preventDefault();el.style.borderColor='var(--accent)'});
+    el.addEventListener('dragleave',()=>{el.style.borderColor='transparent'});
+    el.addEventListener('drop',e=>{e.preventDefault();el.style.borderColor='transparent';onDrop(e,pi)});
+  });
+}
+
+function getProg(p,gs){let t=0,d=0;gs.forEach(g=>{const s=(p.checks&&p.checks[g.id])||'';if(s==='na')return;t++;if(s==='pass')d++});return t?Math.round(d/t*100):0}
+function getFails(p,gs){let f=0;gs.forEach(g=>{if((p.checks&&p.checks[g.id])==='fail')f++});return f}
+
+function cycleCell(pi,gid){
+  const p=curVer().pets[pi];if(!p.checks)p.checks={};
+  const ord=['pass','fail','pending','na',''];
+  const cur=p.checks[gid]||'';
+  p.checks[gid]=ord[(ord.indexOf(cur)+1)%ord.length];
+  render();
+}
+// --- Context Menu ---
+function showCtxMenu(ev,pi,gid){
+  ev.preventDefault();
+  closeCtxMenu();
+  const p=curVer().pets[pi];
+  const s=(p.checks&&p.checks[gid])||'';
+  const noteKey=gid+'__'+pi;
+  const bugKey='bug__'+gid+'__'+pi;
+  const hasNote=p.notes&&p.notes[noteKey];
+  const hasBug=p.bugs&&p.bugs[bugKey];
+
+  let items='';
+  items+=`<div class="ctx-item" onclick="doEditNote(${pi},'${gid}')">📝 ${hasNote?'编辑备注':'添加备注'}</div>`;
+  if(hasNote)items+=`<div class="ctx-item" onclick="doClearNote(${pi},'${gid}')">🗑 清除备注</div>`;
+  items+=`<div class="ctx-sep"></div>`;
+  items+=`<div class="ctx-item" onclick="doEditBug(${pi},'${gid}')">🔗 ${hasBug?'编辑Bug链接':'关联Bug链接'}</div>`;
+  if(hasBug)items+=`<div class="ctx-item" onclick="doClearBug(${pi},'${gid}')">✕ 移除Bug链接</div>`;
+  if(hasBug)items+=`<div class="ctx-item" onclick="doOpenBug(${pi},'${gid}')">🌐 打开Bug链接</div>`;
+  if(hasBug)items+=`<div class="ctx-item" onclick="doCopyBug(${pi},'${gid}')">📋 复制Bug链接</div>`;
+
+  const menu=document.createElement('div');
+  menu.className='ctx-menu';
+  menu.id='ctxMenu';
+  menu.innerHTML=items;
+  menu.style.left=ev.clientX+'px';
+  menu.style.top=ev.clientY+'px';
+  document.body.appendChild(menu);
+  // Adjust if off screen
+  requestAnimationFrame(()=>{
+    const r=menu.getBoundingClientRect();
+    if(r.right>window.innerWidth)menu.style.left=(window.innerWidth-r.width-8)+'px';
+    if(r.bottom>window.innerHeight)menu.style.top=(window.innerHeight-r.height-8)+'px';
+  });
+}
+function closeCtxMenu(){const m=document.getElementById('ctxMenu');if(m)m.remove()}
+document.addEventListener('click',closeCtxMenu);
+document.addEventListener('contextmenu',function(e){
+  // Only keep custom menu open for .cell elements
+  if(!e.target.closest('.cell'))closeCtxMenu();
+});
+
+function doEditNote(pi,gid){
+  closeCtxMenu();
+  const p=curVer().pets[pi];if(!p.notes)p.notes={};
+  const key=gid+'__'+pi;
+  const cur=p.notes[key]||'';
+  const n=prompt('编辑备注 (留空清除):',cur);
+  if(n===null)return;
+  if(n.trim())p.notes[key]=n.trim();else delete p.notes[key];
+  render();toast(n.trim()?'备注已保存':'备注已清除');
+}
+function doClearNote(pi,gid){
+  closeCtxMenu();
+  const p=curVer().pets[pi];if(!p.notes)return;
+  delete p.notes[gid+'__'+pi];
+  render();toast('备注已清除');
+}
+const BUG_BASE='https://l36.pm.netease.com/v6/issues/';
+function bugTextToUrl(text){
+  text=(text||'').trim();
+  if(!text)return '';
+  // Already a full URL
+  if(/^https?:\/\//i.test(text))return text;
+  // Extract #number pattern
+  const m=text.match(/#(\d+)/);
+  if(m)return BUG_BASE+m[1];
+  // Pure number
+  if(/^\d+$/.test(text))return BUG_BASE+text;
+  return '';
+}
+function clickBugLink(el){
+  const raw=decodeURIComponent(el.dataset.bug||'');
+  const url=bugTextToUrl(raw);
+  if(url)window.location.href=url;
+  else toast('无法识别链接，请输入工单号或完整URL','var(--fail)');
+}
+function doEditBug(pi,gid){
+  closeCtxMenu();
+  const p=curVer().pets[pi];if(!p.bugs)p.bugs={};
+  const key='bug__'+gid+'__'+pi;
+  const cur=p.bugs[key]||'';
+  const raw=prompt('输入Bug工单号或链接 (如 #1203358 或完整URL，留空清除):',cur);
+  if(raw===null)return;
+  const t=raw.trim();
+  if(t){p.bugs[key]=t;const url=bugTextToUrl(t);render();toast(url?'Bug已关联: '+url:'已保存（无法识别为链接）')}
+  else{delete p.bugs[key];render();toast('Bug链接已移除')}
+}
+function doClearBug(pi,gid){
+  closeCtxMenu();
+  const p=curVer().pets[pi];if(!p.bugs)return;
+  delete p.bugs['bug__'+gid+'__'+pi];
+  render();toast('Bug链接已移除');
+}
+function doOpenBug(pi,gid){
+  closeCtxMenu();
+  const p=curVer().pets[pi];if(!p.bugs)return;
+  const raw=p.bugs['bug__'+gid+'__'+pi]||'';
+  const url=bugTextToUrl(raw);
+  if(url)window.location.href=url;
+  else toast('无法识别链接格式','var(--fail)');
+}
+function doCopyBug(pi,gid){
+  closeCtxMenu();
+  const p=curVer().pets[pi];if(!p.bugs)return;
+  const url=fixUrl(p.bugs['bug__'+gid+'__'+pi]||'');
+  if(!url)return;
+  navigator.clipboard.writeText(url).then(()=>toast('链接已复制到剪贴板')).catch(()=>{
+    prompt('复制链接:',url);
+  });
+}
+
+function switchVer(id){app.currentVersion=id;render()}
+function showModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-bg').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')})});
+
+function addVersion(){const n=document.getElementById('f_ver').value.trim();if(!n)return toast('请输入版本号','var(--fail)');const id='v'+Date.now();app.versions.push({id,name:n,pets:[],checkGroups:JSON.parse(JSON.stringify(DEFAULT_GROUPS))});app.currentVersion=id;closeModal('addVerModal');render();toast('版本已创建')}
+function showAddPetModal(){if(!curVer())return toast('请先创建版本','var(--fail)');showModal('addPetModal');['f_name','f_tid','f_source','f_avatar'].forEach(id=>document.getElementById(id).value='')}
+function addPet(){const n=document.getElementById('f_name').value.trim();if(!n)return toast('请输入名称','var(--fail)');curVer().pets.push({name:n,templateId:document.getElementById('f_tid').value.trim(),rarity:document.getElementById('f_rarity').value,petType:document.getElementById('f_type').value,source:document.getElementById('f_source').value.trim(),avatar:document.getElementById('f_avatar').value.trim(),checks:{}});closeModal('addPetModal');render();toast('已添加 '+n)}
+
+function batchAll(pi,st){const p=curVer().pets[pi];if(!p.checks)p.checks={};getGroups().forEach(g=>{p.checks[g.id]=st});render();toast(p.name+' 全'+(st==='pass'?'Pass':'N/A'))}
+function resetPet(pi){if(!confirm('确定重置?'))return;curVer().pets[pi].checks={};render();toast('已重置')}
+function delPet(pi){if(!confirm('删除 '+curVer().pets[pi].name+'?'))return;curVer().pets.splice(pi,1);render();toast('已删除','var(--fail)')}
+function saveSrcSel(pi,sel){
+  const v=sel.value;
+  const inp=sel.parentElement.querySelector('.src-custom');
+  if(v==='自定义'){inp.style.display='block';inp.focus();curVer().pets[pi].source='自定义'}
+  else{inp.style.display='none';curVer().pets[pi].source=v;saveToServer()}
+}
+function saveSrcCustom(pi,inp){
+  const t=inp.value.trim();
+  if(t){curVer().pets[pi].source=t}
+  saveToServer();
+}
+
+function renameCat(oldName,newName){
+  newName=(newName||'').trim();
+  if(!newName||newName===oldName)return;
+  ensureGroups();
+  const gs=curVer().checkGroups;
+  gs.forEach(g=>{if(g.cat===oldName)g.cat=newName});
+  // Update CAT_COLORS if needed
+  if(CAT_COLORS[oldName]&&!CAT_COLORS[newName]){CAT_COLORS[newName]=CAT_COLORS[oldName]}
+  render();toast('分类已重命名');
+}
+
+function addGroupRow(){
+  ensureGroups();
+  const gs=curVer().checkGroups;
+  // Collect unique categories
+  const cats=[...new Set(gs.map(g=>g.cat).filter(Boolean))];
+  if(!cats.length)cats.push('未分类');
+  // Build category selection
+  let catChoice;
+  if(cats.length===1){catChoice=cats[0]}
+  else{
+    const idx=prompt('选择分类 (输入序号):\n'+cats.map((c,i)=>`  ${i+1}. ${c}`).join('\n')+'\n  0. 新建分类');
+    if(idx===null)return;
+    const n=parseInt(idx);
+    if(n===0){catChoice=prompt('输入新分类名称:');if(!catChoice||!catChoice.trim())return;catChoice=catChoice.trim()}
+    else if(n>=1&&n<=cats.length){catChoice=cats[n-1]}
+    else return toast('无效选择','var(--fail)');
+  }
+  const label=prompt('请输入新检查行名称:');
+  if(!label||!label.trim())return;
+  const v=curVer();
+  const cc=CAT_COLORS[catChoice]||'#818cf8';
+  // Find insertion index: after last item of this category
+  let insertIdx=gs.length;
+  for(let i=gs.length-1;i>=0;i--){if(gs[i].cat===catChoice){insertIdx=i+1;break}}
+  const newItem={id:'ck_'+Date.now(),cat:catChoice,title:label.trim(),color:cc};
+  gs.splice(insertIdx,0,newItem);
+  render();toast('已添加到「'+catChoice+'」');
+}
+function editGrp(gi){
+  ensureGroups();const g=curVer().checkGroups[gi];
+  const t=prompt('编辑检查项:',g.title);
+  if(!t||!t.trim())return;g.title=t.trim();render();toast('已更新');
+}
+function delGrp(gi){
+  ensureGroups();const g=curVer().checkGroups[gi];
+  if(!confirm('删除「'+g.title.slice(0,25)+'」?'))return;
+  const gid=g.id;curVer().checkGroups.splice(gi,1);
+  curVer().pets.forEach(p=>{if(p.checks)delete p.checks[gid]});
+  render();toast('已删除','var(--fail)');
+}
+
+// Avatar — single-click = select, double-click = file picker
+let avIdx=-1;
+function selectAv(ev,pi){
+  ev.stopPropagation();
+  // Toggle selection
+  if(avIdx===pi){avIdx=-1}else{avIdx=pi}
+  // Update visual without full re-render (to avoid losing focus)
+  document.querySelectorAll('.pav').forEach(el=>el.classList.remove('av-selected'));
+  if(avIdx>=0){
+    const el=document.getElementById('av-'+avIdx);
+    if(el){el.classList.add('av-selected');el.focus()}
+  }
+  if(avIdx>=0)toast('已选中头像 — 现在按 Ctrl+V 粘贴图片','#0891b2');
+}
+function dblClickAv(pi){
+  avIdx=pi;
+  document.getElementById('avIn').click();
+}
+function handleAvFile(ev){const f=ev.target.files[0];if(!f||avIdx<0)return;readImg(f,avIdx);ev.target.value=''}
+function onPaste(ev,pi){
+  const items=ev.clipboardData&&ev.clipboardData.items;if(!items)return;
+  for(let i=0;i<items.length;i++){if(items[i].type.indexOf('image')!==-1){ev.preventDefault();readImg(items[i].getAsFile(),pi);return}}
+}
+function onDrop(ev,pi){const files=ev.dataTransfer&&ev.dataTransfer.files;if(files&&files[0]&&files[0].type.startsWith('image/'))readImg(files[0],pi)}
+function readImg(file,pi){
+  const r=new FileReader();
+  r.onload=e=>{
+    curVer().pets[pi].avatar=e.target.result;
+    avIdx=-1; // deselect after paste
+    render();
+    toast('头像已更新');
+  };
+  r.readAsDataURL(file);
+}
+
+// Lightbox
+let lbIdx=-1;
+function openLightbox(pi){
+  const v=curVer();if(!v)return;
+  // Find all pets with avatars
+  const withAv=v.pets.map((p,i)=>({p,i})).filter(x=>x.p.avatar);
+  if(!withAv.length)return;
+  // Find the one matching pi, or closest
+  let idx=withAv.findIndex(x=>x.i===pi);
+  if(idx<0)idx=0;
+  lbIdx=idx;
+  renderLightbox(withAv);
+}
+function renderLightbox(withAv){
+  if(!withAv)withAv=getLbList();
+  if(!withAv.length){closeLightbox();return}
+  if(lbIdx<0)lbIdx=0;
+  if(lbIdx>=withAv.length)lbIdx=withAv.length-1;
+  const cur=withAv[lbIdx];
+  document.getElementById('lbImg').src=cur.p.avatar;
+  document.getElementById('lbImg').classList.remove('zoomed');
+  document.getElementById('lbName').textContent=cur.p.name;
+  document.getElementById('lbSub').textContent=(cur.p.rarity||'')+(cur.p.templateId?' · ID '+cur.p.templateId:'');
+  document.getElementById('lbCounter').textContent=(lbIdx+1)+' / '+withAv.length;
+  document.getElementById('lightbox').classList.add('show');
+}
+function getLbList(){
+  const v=curVer();if(!v)return[];
+  return v.pets.map((p,i)=>({p,i})).filter(x=>x.p.avatar);
+}
+function lbNav(dir){
+  const list=getLbList();if(!list.length)return;
+  lbIdx=(lbIdx+dir+list.length)%list.length;
+  renderLightbox(list);
+}
+function lbToggleZoom(){
+  document.getElementById('lbImg').classList.toggle('zoomed');
+}
+function lbClickBg(ev){
+  if(ev.target===document.getElementById('lightbox'))closeLightbox();
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('show');
+  document.getElementById('lbImg').classList.remove('zoomed');
+  lbIdx=-1;
+}
+document.addEventListener('keydown',function(ev){
+  if(!document.getElementById('lightbox').classList.contains('show'))return;
+  if(ev.key==='Escape')closeLightbox();
+  else if(ev.key==='ArrowLeft')lbNav(-1);
+  else if(ev.key==='ArrowRight')lbNav(1);
+});
+
+// Global paste listener — works even without explicit focus
+document.addEventListener('paste',function(ev){
+  // If user is typing in an input/textarea/contenteditable, skip
+  const ae=document.activeElement;
+  if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable))return;
+
+  // Check if any .pav is focused
+  if(ae&&ae.classList&&ae.classList.contains('pav')){
+    const pi=parseInt(ae.id.replace('av-',''));
+    if(!isNaN(pi)){onPaste(ev,pi);return}
+  }
+  // Use the last selected avatar index
+  if(avIdx>=0){
+    const items=ev.clipboardData&&ev.clipboardData.items;if(!items)return;
+    for(let i=0;i<items.length;i++){
+      if(items[i].type.indexOf('image')!==-1){
+        ev.preventDefault();
+        readImg(items[i].getAsFile(),avIdx);
+        return;
+      }
+    }
+  }
+});
+
+// Click anywhere else to deselect avatar
+document.addEventListener('click',function(ev){
+  if(!ev.target.closest('.pav')&&avIdx>=0){
+    // Don't deselect if clicking certain UI elements
+    if(ev.target.closest('.header')||ev.target.closest('.vtabs')||ev.target.closest('.modal-bg'))return;
+    // Keep selection for a moment to allow paste
+  }
+});
+
+// Load
+async function showLoadModal(){
+  if(!curVer())return toast('请先创建版本','var(--fail)');
+  showModal('loadModal');loadCache=[];
+  document.getElementById('loadPreview').style.display='none';
+  document.getElementById('loadConfirmBtn').style.display='none';
+  document.getElementById('loadSeasonInput').value='';
+  try{const r=await fetch(API+'/api/all_seasons');const d=await r.json();
+    if(d.success){let h='';d.seasons.forEach(s=>{h+=`<button class="season-pill" onclick="pickSeason('${s}',this)">${s}</button>`});document.getElementById('seasonPills').innerHTML=h}
+  }catch(e){document.getElementById('seasonPills').innerHTML=''}
+}
+function pickSeason(s,btn){document.getElementById('loadSeasonInput').value=s;document.querySelectorAll('.season-pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');doLoadQuery()}
+async function doLoadQuery(){
+  const raw=document.getElementById('loadSeasonInput').value;if(!raw.trim())return toast('输入版本号','var(--fail)');
+  const season=normSeason(raw);
+  document.getElementById('loadQueryBtn').textContent='⏳';document.getElementById('loadQueryBtn').disabled=true;
+  try{
+    const r=await fetch(API+'/api/query_pets?season='+encodeURIComponent(season));const d=await r.json();
+    if(!d.success||!d.pets.length){toast('无数据','var(--pending)');document.getElementById('loadPreview').style.display='none';return}
+    loadCache=d.pets;
+    let h=`<div style="font-size:11px;color:var(--pass);margin-bottom:4px">✅ ${d.total} 个宠物</div>`;
+    h+='<table class="ptable"><tr><th>ID</th><th>名称</th><th>稀有度</th><th>类型</th><th>载入</th></tr>';
+    d.pets.forEach((p,i)=>{
+      const rn=RANK_MAP[p.rank]||'R'+p.rank,c=p.rank>=6?'#ec4899':p.rank>=5?'#eab308':p.rank>=4?'#a855f7':'#3b82f6';
+      h+=`<tr><td>${Math.round(p.id)}</td><td style="font-weight:600">${p.name}</td><td><span style="padding:1px 4px;border-radius:3px;font-size:9px;background:${c}22;color:${c}">${rn}</span></td><td>${TYPE_MAP[p.petType]||'T'+p.petType}</td><td><input type="checkbox" checked data-i="${i}"></td></tr>`;
+    });h+='</table>';
+    document.getElementById('loadPreviewContent').innerHTML=h;
+    document.getElementById('loadPreview').style.display='block';
+    document.getElementById('loadConfirmBtn').style.display='';
+  }catch(e){toast('请求失败','var(--fail)')}
+  finally{document.getElementById('loadQueryBtn').textContent='🔍 查询';document.getElementById('loadQueryBtn').disabled=false}
+}
+function doLoadConfirm(){
+  if(!loadCache.length)return;
+  const sel=[];document.querySelectorAll('#loadPreviewContent input[type=checkbox]').forEach(c=>{if(c.checked)sel.push(+c.dataset.i)});
+  if(!sel.length)return toast('请选择','var(--fail)');
+  let tv;
+  if(document.getElementById('loadMode').value==='new'){
+    const s=normSeason(document.getElementById('loadSeasonInput').value);
+    const id='v'+Date.now();app.versions.push({id,name:'S'+s+'赛季',pets:[],checkGroups:JSON.parse(JSON.stringify(DEFAULT_GROUPS))});app.currentVersion=id;tv=app.versions.find(v=>v.id===id);
+  }else tv=curVer();
+  const exist=new Set(tv.pets.map(p=>p.name));let added=0,skip=0;
+  sel.forEach(i=>{
+    const r=loadCache[i];if(exist.has(r.name)){skip++;return}exist.add(r.name);
+    tv.pets.push({name:r.name,templateId:String(Math.round(r.id)),rarity:r2rarity(r.rank),petType:r2petType(r.petType),source:'',avatar:'',checks:{}});added++;
+  });
+  closeModal('loadModal');render();toast('载入 '+added+' 个'+(skip?' (跳过'+skip+'重复)':''));
+}
+
+function exportAll(){const b=new Blob([JSON.stringify(app,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='pet_tracker_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(u);toast('已导出')}
+function importAll(){document.getElementById('fileIn').click()}
+function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.versions){app=d;render();toast('导入成功')}else toast('格式错误','var(--fail)')}catch(err){toast('失败','var(--fail)')}};r.readAsText(f);e.target.value=''}
+function toast(msg,bg){const e=document.getElementById('toast');e.textContent=msg;e.style.background=bg||'var(--pass)';e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
+
+(async()=>{await loadFromServer();render();loadDataStatus()})();
+</script>
+</body>
+</html>
