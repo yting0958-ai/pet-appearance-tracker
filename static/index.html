@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🐾 宠物外观版本测试跟踪器</title>
 <style>
-:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--accent:#6366f1;--accent2:#818cf8;--pass:#22c55e;--fail:#ef4444;--pending:#f59e0b;--skip:#64748b;--na:#8b5cf6}
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#6B7280;--accent:#3B82F6;--accent2:#3B82F6;--pass:#34D399;--fail:#F87171;--pending:#A78BFA;--skip:#6B7280;--na:#6B7280;--gold:#F59E0B;--hover-row:rgba(255,255,255,.04);--hover-col:rgba(59,130,246,.06)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.header{background:linear-gradient(135deg,#1e1b4b,#312e81,#4338ca);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.header{background:linear-gradient(135deg,#0f172a,#1e293b,#1e3a5f);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .header h1{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
 .header-right{display:flex;gap:6px;flex-wrap:wrap}
 .btn{padding:6px 14px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:4px}
 .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
 .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}.btn-outline:hover{background:var(--card)}
-.btn-purple{background:#8b5cf6;color:#fff}.btn-purple:hover{background:#7c3aed}
+.btn-purple{background:var(--accent);color:#fff}.btn-purple:hover{background:#2563eb}
 .btn-sm{padding:5px 10px;font-size:11px}
 
 .vtabs{display:flex;gap:6px;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;flex-wrap:wrap}
@@ -30,25 +30,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .prog-mini{width:200px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:flex}
 .prog-mini .pp{background:var(--pass);transition:width .4s}.prog-mini .pf{background:var(--fail);transition:width .4s}.prog-mini .pw{background:var(--pending);transition:width .4s}
 
+
+.stat-cards{display:flex;gap:8px;align-items:stretch}
+.stat-card{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.stat-icon{font-size:14px}
+.stat-num{font-size:20px;font-weight:800;color:var(--text);line-height:1}
+.stat-label{font-size:10px;color:var(--muted);font-weight:500}
+.sc-pass .stat-num{color:var(--pass)}
+.sc-fail .stat-num{color:var(--fail)}
+.sc-pend .stat-num{color:var(--pending)}
+.stat-progress-wrap{display:flex;flex-direction:column;gap:3px;min-width:180px}
+.stat-pct{font-size:18px;font-weight:800;color:var(--text)}
+.stat-progress{height:8px;border-radius:4px;background:var(--border);overflow:hidden;display:flex}
+.sp-pass{background:linear-gradient(90deg,#34D399,#6EE7B7);transition:width .4s}
+.sp-fail{background:linear-gradient(90deg,#F87171,#FCA5A5);transition:width .4s}
+.sp-pend{background:rgba(148,163,184,.4);transition:width .4s}
+.stat-legend{display:flex;gap:10px}
+.sl-item{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted)}
+.sl-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
 .data-status{padding:4px 24px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .data-dot{width:7px;height:7px;border-radius:50%;background:var(--pass);display:inline-block}.data-dot.empty{background:var(--fail)}
 
-.table-wrap{padding:10px 24px 40px;overflow-x:auto;max-height:calc(100vh - 160px);overflow-y:auto}
+.table-wrap{padding:0 24px 40px;overflow:auto;position:relative;z-index:1}
 table.mt{border-collapse:separate;border-spacing:0;min-width:100%}
+
+table.mt thead th{background:var(--card);position:sticky;top:0;z-index:40}
+table.mt thead th.col-hl{background:var(--card)!important}
+/* 列 hover 高亮 */
+table.mt td.col-hl{background:var(--hover-col)!important}
+table.mt td.col-hl .cell{background:transparent!important}
+.filter-chips{display:flex;gap:4px;margin-left:12px}
+.filter-chip{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.filter-chip:hover{border-color:var(--accent);color:var(--text)}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
 table.mt th,table.mt td{border:1px solid var(--border);padding:0;vertical-align:middle;text-align:center}
 
-.cat-row td{background:linear-gradient(90deg,rgba(99,102,241,.12),transparent)!important;padding:5px 12px!important;font-size:11px;font-weight:800;letter-spacing:1px;border:none!important;border-bottom:2px solid var(--border)!important}
+.cat-row td{background:linear-gradient(90deg,rgba(99,102,241,.12),transparent)!important;padding:10px 12px!important;font-size:12px;font-weight:800;letter-spacing:.5px;border:none!important;border-bottom:2px solid var(--border)!important;border-top:16px solid var(--bg)!important}
 .cat-row .cat-label{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:4px;font-size:11px}
 .rh{position:sticky;left:0;z-index:10;background:var(--card);text-align:left!important;padding:6px 10px!important;font-size:12px;font-weight:600;min-width:220px;max-width:280px;white-space:normal;line-height:1.4}
-.rh.gh{background:linear-gradient(135deg,rgba(99,102,241,.10),rgba(139,92,246,.04));color:var(--accent2);font-weight:700;font-size:11px;cursor:default}
+.rh.gh{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.03));color:var(--accent2);font-weight:600;font-size:13px;cursor:default;padding:8px 10px!important}
 
-.ch{min-width:115px;max-width:135px;padding:6px 4px!important;background:var(--card);position:sticky;top:0;z-index:20}
-.corner{position:sticky;left:0;top:0;z-index:30;background:var(--card);min-width:220px;padding:8px!important}
+.ch{min-width:115px;max-width:135px;padding:6px 4px!important;background:var(--card);position:sticky;top:0;z-index:40}
+.corner{position:sticky;left:0;top:0;z-index:50;background:var(--card);min-width:220px;padding:8px!important}
 
 .pcol{display:flex;flex-direction:column;align-items:center;gap:4px}
-.pav{width:80px;height:80px;border-radius:10px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;cursor:pointer;position:relative;border:2px solid transparent;transition:border-color .2s}
+.pav-old-replaced{width:80px;height:80px;border-radius:10px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;cursor:pointer;position:relative;border:2px solid transparent;transition:border-color .2s}
 .pav:hover{border-color:var(--accent)}
-.pav.av-selected{border-color:#22d3ee!important;box-shadow:0 0 0 3px rgba(34,211,238,.35);animation:av-pulse 1.5s infinite}
+.pav.av-selected-old{display:none}
 @keyframes av-pulse{0%,100%{box-shadow:0 0 0 3px rgba(34,211,238,.35)}50%{box-shadow:0 0 0 5px rgba(34,211,238,.18)}}
 .pav img{width:100%;height:100%;object-fit:cover}
 .pav .avh{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;font-size:10px;color:#fff;pointer-events:none;gap:2px;line-height:1.3}
@@ -71,21 +99,38 @@ table.mt th,table.mt td{border:1px solid var(--border);padding:0;vertical-align:
 .lightbox-nav.prev{left:20px}
 .lightbox-nav.next{right:20px}
 .lightbox-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,.4)}
-.pnm{font-size:11px;font-weight:700;max-width:110px;text-align:center;word-break:break-all;line-height:1.3}
-.ptags{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.pnm-old-replaced{display:none}
+.ptags-old{display:none}
 .ptag{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600}
 .t-legend{background:rgba(234,179,8,.2);color:#eab308}.t-epic{background:rgba(168,85,247,.2);color:#a855f7}
 .t-rare{background:rgba(59,130,246,.2);color:#3b82f6}.t-ling{background:rgba(236,72,153,.2);color:#ec4899}
 .t-type{background:rgba(99,102,241,.15);color:#818cf8}
-.pprog{font-size:10px;font-weight:700}
-.pacts{display:flex;gap:2px;margin-top:2px}
+.pprog-old{display:none}
+.pacts-old-replaced{display:none}
 .pa{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);padding:1px;border-radius:3px;transition:all .15s}
 .pa:hover{color:var(--accent2);background:rgba(99,102,241,.1)}
 .pa.del:hover{color:var(--fail);background:rgba(239,68,68,.1)}
 
+
+.t-gold{background:rgba(245,158,11,.15);color:var(--gold)}
+.t-purple{background:rgba(168,85,247,.18);color:#a855f7}
+.t-blue{background:rgba(59,130,246,.18);color:#3b82f6}
+.pet-meta{display:flex;align-items:center;gap:4px;justify-content:center;flex-wrap:wrap}
+.pet-rarity-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pet-rarity-dot.t-gold{background:var(--gold)}.pet-rarity-dot.t-purple{background:#a855f7}.pet-rarity-dot.t-blue{background:#3b82f6}
+.pet-rarity-txt{font-size:10px;font-weight:600;color:var(--muted)}
+.pet-src{font-size:9px;color:var(--muted);opacity:.7}
+.pet-prog-row{display:flex;align-items:center;gap:3px;justify-content:center}
+.pet-pct{font-size:12px;font-weight:800}
+.pet-fc{font-size:10px;color:var(--fail);font-weight:700}
+.pet-minibar{width:80%;height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin:0 auto}
+.pav{width:72px;height:72px;border-radius:8px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;cursor:pointer;position:relative;border:2px solid transparent;transition:border-color .2s}
+.pnm{font-size:11px;font-weight:700;max-width:110px;text-align:center;word-break:break-all;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pacts{display:none;gap:2px;margin-top:2px}
+.pcol:hover .pacts{display:flex}
 .cell{min-height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:600;padding:4px;transition:background .1s;user-select:none;min-width:115px;position:relative}
-.cell:hover{background:rgba(255,255,255,.04)}
-.cell.s-pass{color:var(--pass)}.cell.s-fail{color:var(--fail);background:rgba(239,68,68,.06)}
+.cell:hover{background:rgba(255,255,255,.06)}
+.cell.s-pass{color:var(--pass)}.cell.s-fail{color:var(--fail);background:rgba(255,60,60,.08)}
 .cell.s-pending{color:var(--pending)}.cell.s-na{color:var(--skip)}
 .cell .cell-note{position:absolute;top:1px;right:2px;font-size:8px;color:var(--pending);cursor:pointer;opacity:.6}
 .cell .cell-note:hover{opacity:1}
@@ -95,7 +140,7 @@ table.mt th,table.mt td{border:1px solid var(--border);padding:0;vertical-align:
 .cell .bug-link:hover{opacity:1;text-decoration:underline}
 .cell.s-fail .bug-hint{position:absolute;bottom:1px;left:2px;font-size:8px;color:var(--muted);opacity:.4;pointer-events:none}
 
-.pav.av-selected{border-color:var(--accent)!important;box-shadow:0 0 0 2px rgba(99,102,241,.4)}
+.pav.av-selected{border-color:#3B82F6!important;transform:scale(1.08);box-shadow:0 0 0 2px #3B82F6,0 8px 24px rgba(0,0,0,.3);z-index:2;transition:all .2s}
 .pav .avh-sel{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;color:#a5f3fc;opacity:0;transition:opacity .15s;pointer-events:none}
 .pav.av-selected .avh-sel{opacity:1}
 
@@ -135,27 +180,36 @@ table.mt th,table.mt td{border:1px solid var(--border);padding:0;vertical-align:
 .toast.show{transform:translateY(0);opacity:1}
 @media(max-width:768px){.header{padding:10px}.table-wrap{padding:6px 10px}}
 
+
+.rh-main{font-size:13px;font-weight:600;color:var(--accent2);display:block;line-height:1.4}
+.rh-sub{font-size:11px;font-weight:400;color:var(--muted);display:block;line-height:1.3;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help;opacity:.7}
+.rh-sub:hover{opacity:1;white-space:normal;overflow:visible}
 .cell-note-img{position:absolute;top:1px;left:2px;font-size:9px;opacity:.7;pointer-events:none}
 .cell-stamp{position:absolute;bottom:1px;right:2px;font-size:8px;color:var(--muted);font-weight:600;opacity:.7;line-height:1;letter-spacing:-.3px}
 .note-drop{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;color:var(--muted);cursor:pointer;transition:all .2s;font-size:13px;margin-top:8px}
 .note-drop:hover,.note-drop.drag{border-color:var(--accent);color:var(--text)}
 .note-drop img{max-width:100%;max-height:130px;border-radius:6px;object-fit:contain}
-.fail-summary-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.fail-summary-table th{background:rgba(255,255,255,.05);padding:8px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
-.fail-summary-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
-.fail-summary-table tr:last-child td{border-bottom:none}
-.fail-summary-table tr:hover td{background:rgba(255,255,255,.03)}
+.pet-src-row{width:100%;padding:2px 4px;display:flex;flex-direction:column;gap:2px}
+.pet-src-row .src-sel{width:100%;background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:10px;padding:2px 4px;cursor:pointer;outline:none;text-align:center}
+.pet-src-row .src-sel:hover{border-color:var(--accent)}
+.pet-src-row .src-custom{width:100%;background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:10px;padding:2px 4px;outline:none}
+
+table.mt tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+table.mt tbody tr:nth-child(odd) td{background:rgba(255,255,255,.0)}
+table.mt tbody tr:hover td{background:rgba(255,255,255,.05)!important}
+table.mt tbody tr:hover td .cell{background:transparent!important}
+
+table.mt tbody tr[data-gid] td.rh{border-left:3px solid var(--cat-c,var(--border))}
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>🐾 宠物外观版本测试跟踪器</h1>
-  <div class="header-right">
+  <div class="header-right" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
     <button class="btn btn-outline btn-sm" onclick="exportAll()">📥 导出</button>
     <button class="btn btn-outline btn-sm" onclick="importAll()">📤 导入</button>
     <button class="btn btn-purple btn-sm" onclick="showLoadModal()">🔄 载入版本宠物</button>
-    <button class="btn btn-outline btn-sm" onclick="showFailSummary()">❌ 失败汇总</button>
     <button class="btn btn-primary btn-sm" onclick="showAddPetModal()">＋ 新增宠物</button>
   </div>
 </div>
@@ -247,14 +301,6 @@ table.mt th,table.mt td{border:1px solid var(--border);padding:0;vertical-align:
 </div>
 </div>
 
-<!-- Fail Summary Modal -->
-<div class="modal-bg" id="failModal">
-<div class="modal" style="max-width:620px">
-  <h2>❌ 失败项汇总</h2>
-  <div id="failBody" style="max-height:55vh;overflow-y:auto;padding:0 4px"></div>
-  <div class="factions"><button class="btn btn-outline btn-sm" onclick="closeModal('failModal')">关闭</button></div>
-</div>
-</div>
 
 <!-- Note Modal -->
 <div class="modal-bg" id="noteModal">
@@ -356,7 +402,9 @@ async function loadDataStatus(){
 function render(){renderTabs();renderStats();renderTable();saveToServer()}
 
 function renderTabs(){
-  let h='';app.versions.forEach((v,vi)=>{h+=`<div class="vtab${v.id===app.currentVersion?' active':''}" onclick="switchVer('${v.id}')">${v.name}<span style="opacity:.5;font-size:10px;margin-left:4px">(${v.pets.length})</span><span class="vtab-edit" onclick="event.stopPropagation();editVerName(${vi})">✏️</span></div>`});
+  let h='';app.versions.forEach((v,vi)=>{
+    h+=`<div class="vtab${v.id===app.currentVersion?' active':''}" onclick="switchVer('${v.id}')">${v.name}<span style="opacity:.5;font-size:10px;margin-left:4px">(${v.pets.length})</span><span class="vtab-edit" onclick="event.stopPropagation();editVerName(${vi})">✏️</span><span class="vtab-edit" style="color:var(--fail)" onclick="event.stopPropagation();delVersion(${vi})" title="删除此赛季">✕</span></div>`;
+  });
   h+=`<button class="vtab-add" onclick="showModal('addVerModal')">＋</button>`;
   document.getElementById('vtabs').innerHTML=h;
 }
@@ -364,19 +412,45 @@ function editVerName(vi){
   const v=app.versions[vi];const n=prompt('编辑版本名称:',v.name);
   if(!n||!n.trim())return;v.name=n.trim();render();toast('版本名已更新');
 }
+function delVersion(vi){
+  const v=app.versions[vi];
+  if(!confirm('确定删除赛季「'+v.name+'」？\n包含 '+v.pets.length+' 个宠物和所有测试数据，删除后不可恢复！'))return;
+  app.versions.splice(vi,1);
+  if(app.currentVersion===v.id){
+    app.currentVersion=app.versions.length?app.versions[Math.min(vi,app.versions.length-1)].id:null;
+  }
+  if(!app.versions.length){
+    app.versions=[{id:'v1',name:'默认版本',pets:[],checkGroups:JSON.parse(JSON.stringify(DEFAULT_GROUPS))}];
+    app.currentVersion='v1';
+  }
+  render();toast('已删除赛季「'+v.name+'」','var(--fail)');
+}
 
 function renderStats(){
   const v=curVer();if(!v)return;
   const gs=getGroups();let total=0,pass=0,fail=0;
   v.pets.forEach(p=>{gs.forEach(g=>{const s=(p.checks&&p.checks[g.id])||'';if(s==='na')return;total++;if(s==='pass')pass++;else if(s==='fail')fail++})});
   const pend=total-pass-fail,pct=total?Math.round(pass/total*100):0;
+  const ppW=total?(pass/total*100).toFixed(1):0, pfW=total?(fail/total*100).toFixed(1):0, pwW=total?(pend/total*100).toFixed(1):0;
   document.getElementById('statsBar').innerHTML=`
-    <span><span class="sv sa">${v.pets.length}</span>宠物</span>
-    <span><span class="sv sp">${pass}</span>通过</span>
-    <span><span class="sv sf">${fail}</span>失败</span>
-    <span><span class="sv sw">${pend}</span>待测</span>
-    <span><span class="sv sa">${pct}%</span></span>
-    <div class="prog-mini"><div class="pp" style="width:${total?pass/total*100:0}%"></div><div class="pf" style="width:${total?fail/total*100:0}%"></div><div class="pw" style="width:${total?pend/total*100:0}%"></div></div>
+    <div class="stat-cards">
+      <div class="stat-card"><span class="stat-icon">🐾</span><span class="stat-num">${v.pets.length}</span><span class="stat-label">宠物</span></div>
+      <div class="stat-card sc-pass"><span class="stat-icon">✅</span><span class="stat-num">${pass}</span><span class="stat-label">通过</span></div>
+      <div class="stat-card sc-fail"><span class="stat-icon">❌</span><span class="stat-num">${fail}</span><span class="stat-label">失败</span></div>
+      <div class="stat-card sc-pend"><span class="stat-icon">⏳</span><span class="stat-num">${pend}</span><span class="stat-label">待测</span></div>
+    </div>
+    <div class="stat-progress-wrap">
+      <div class="stat-pct">${pct}%</div>
+      <div class="stat-progress">
+        <div class="sp-pass" style="width:${ppW}%"></div><div class="sp-fail" style="width:${pfW}%"></div><div class="sp-pend" style="width:${pwW}%"></div>
+      </div>
+      <div class="stat-legend"><span class="sl-item"><span class="sl-dot" style="background:var(--pass)"></span>通过</span><span class="sl-item"><span class="sl-dot" style="background:var(--fail)"></span>失败</span><span class="sl-item"><span class="sl-dot" style="background:var(--muted)"></span>待测</span></div>
+    </div>
+    <div class="filter-chips">
+      <span class="filter-chip active" data-filter="all" onclick="setFilter('all')">全部</span>
+      <span class="filter-chip" data-filter="fail" onclick="setFilter('fail')">仅失败</span>
+      <span class="filter-chip" data-filter="pending" onclick="setFilter('pending')">仅待测</span>
+    </div>
     <button class="btn btn-outline btn-sm" onclick="addGroupRow()" style="margin-left:auto">＋ 新增检查行</button>`;
 }
 
@@ -385,19 +459,28 @@ function renderTable(){
   if(!v){document.getElementById('tableWrap').innerHTML='<div class="empty"><div class="big">📦</div>请先创建版本</div>';return}
   if(!v.pets.length){document.getElementById('tableWrap').innerHTML='<div class="empty"><div class="big">🐣</div><div style="font-size:15px;margin-bottom:8px">暂无宠物</div><div style="font-size:12px">点击「载入版本宠物」或「新增宠物」开始</div></div>';return}
   const gs=getGroups(), pets=v.pets;
+  const SRC_OPTS=['商店','捕捉','繁育','联动活动','自定义'];
   let h='<table class="mt"><thead><tr>';
   h+='<th class="corner rh" style="text-align:center;font-size:11px;color:var(--muted)">检查项 \\ 宠物</th>';
   // Pet columns
   pets.forEach((p,pi)=>{
-    const rc={'灵宠':'t-ling','典藏珍':'t-legend','典藏':'t-epic','稀有':'t-rare'}[p.rarity]||'t-type';
+    const rc={'灵宠':'t-gold','典藏珍':'t-gold','典藏':'t-purple','稀有':'t-blue'}[p.rarity]||'t-blue';
     const prog=getProg(p,gs),fc=getFails(p,gs),ap=prog===100&&fc===0;
     const av=p.avatar?`<img src="${p.avatar}">`:(EMOJI_MAP[p.petType]||'🐾');
     const zoomBtn=p.avatar?`<button class="av-zoom" onclick="event.stopPropagation();openLightbox(${pi})" title="放大查看">🔍</button>`:'';
+    // Micro progress bar colors
+    const progCol=fc?'var(--fail)':ap?'var(--pass)':'var(--pending)';
+    const srcTxt=p.source||'';
     h+=`<th class="ch"><div class="pcol">
-      <div class="pav${avIdx===pi?' av-selected':''}" id="av-${pi}" onclick="selectAv(event,${pi})" ondblclick="dblClickAv(${pi})" tabindex="0">${av}${zoomBtn}<div class="avh">📷 单击选中<br>Ctrl+V粘贴<br>双击选文件</div></div>
-      <div class="pnm">${p.name}</div>
-      <div class="ptags"><span class="ptag ${rc}">${p.rarity}</span></div>
-      <div class="pprog" style="color:${fc?'var(--fail)':ap?'var(--pass)':'var(--pending)'}">${prog}%${fc?' ✗'+fc:ap?' ✓':''}</div>
+      <div class="pav${avIdx===pi?' av-selected':''}" id="av-${pi}" onclick="selectAv(event,${pi})" ondblclick="dblClickAv(${pi})" tabindex="0">${av}${zoomBtn}<div class="avh">📷 单击选中 · Ctrl+V粘贴 · 双击选文件</div></div>
+      <div class="pnm" title="${p.name}">${p.name}</div>
+      <div class="pet-meta"><span class="pet-rarity-dot ${rc}"></span><span class="pet-rarity-txt">${p.rarity}</span>${srcTxt?'<span class="pet-src">'+srcTxt+'</span>':''}</div>
+      <div class="pet-prog-row"><span class="pet-pct" style="color:${progCol}">${prog}%</span>${fc?'<span class="pet-fc">✗'+fc+'</span>':''}</div>
+      <div class="pet-minibar"><div style="width:${prog}%;background:${progCol};height:100%;border-radius:2px;transition:width .3s"></div></div>
+      <div class="pet-src-row">
+        <select class="src-sel" onchange="saveSrcSel(${pi},this)" title="获取方式">${(()=>{const cur2=p.source||'';const isCust=cur2&&!SRC_OPTS.includes(cur2);let o=SRC_OPTS.map(s=>`<option value="${s}"${cur2===s?' selected':''}>${s}</option>`).join('');o=`<option value=""${!cur2?' selected':''}>—</option>`+o;if(isCust)o+=`<option value="${cur2}" selected>${cur2}</option>`;return o})()}</select>
+        <input class="src-custom" placeholder="自定义…" value="${(()=>{const cur2=p.source||'';const isCust=cur2&&!SRC_OPTS.includes(cur2);return(isCust?cur2:'')})()}" onblur="saveSrcCustom(${pi},this)" style="display:${(p.source&&!SRC_OPTS.includes(p.source)||p.source==='自定义')?'block':'none'}">
+      </div>
       <div class="pacts">
         <button class="pa" title="全Pass" onclick="batchAll(${pi},'pass')">✅</button>
         <button class="pa" title="全N/A" onclick="batchAll(${pi},'na')">⊘</button>
@@ -407,21 +490,6 @@ function renderTable(){
     </div></th>`;
   });
   h+='</tr></thead><tbody>';
-  // 获取方式 row
-  const SRC_OPTS=['商店','捕捉','繁育','联动活动','自定义'];
-  h+='<tr><td class="rh" style="font-style:italic;color:var(--pending)">获取方式</td>';
-  pets.forEach((p,pi)=>{
-    const cur=p.source||'';
-    const isCustom=cur&&!SRC_OPTS.includes(cur);
-    let opts=SRC_OPTS.map(o=>`<option value="${o}"${cur===o?' selected':''}>${o}</option>`).join('');
-    opts=`<option value=""${!cur?' selected':''}>—</option>`+opts;
-    if(isCustom)opts+=`<option value="${cur}" selected>${cur}</option>`;
-    h+=`<td><div style="display:flex;flex-direction:column;gap:2px;padding:2px">
-      <select class="src-sel" onchange="saveSrcSel(${pi},this)" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:10px;padding:2px 4px;cursor:pointer;outline:none">${opts}</select>
-      <input class="src-custom" placeholder="自定义内容…" value="${isCustom||cur==='自定义'?(isCustom?cur:''):''}" onblur="saveSrcCustom(${pi},this)" style="display:${cur==='自定义'||isCustom?'block':'none'};background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:10px;padding:2px 4px;outline:none;width:100%;box-sizing:border-box">
-    </div></td>`;
-  });
-  h+='</tr>';
   // Check rows — with category header rows
   let lastCat='';
   const catIcons={'策划配置':'📋','美术资源':'🎨','界面功能':'🖥️','投放验证':'📦','特殊专项':'⭐'};
@@ -432,10 +500,24 @@ function renderTable(){
       const ci=catIcons[thisCat]||'📌';
       // Count items in this category
       let span=0;for(let j=gi;j<gs.length;j++){if((gs[j].cat||'')===thisCat)span++;else break}
-      h+=`<tr class="cat-row"><td colspan="${pets.length+1}" style="border-left:4px solid ${cc}"><span class="cat-label" style="color:${cc};background:${cc}15">${ci} <span contenteditable="true" spellcheck="false" onblur="renameCat('${thisCat}',this.textContent)" style="outline:none;cursor:text">${thisCat}</span></span> <span style="font-size:10px;color:var(--muted);font-weight:400">(${span}项)</span></td></tr>`;
+      // Count fails in this category
+      let catFails=0;
+      for(let j=gi;j<gs.length;j++){
+        if((gs[j].cat||'')!==thisCat)break;
+        pets.forEach(p=>{if((p.checks&&p.checks[gs[j].id])==='fail')catFails++});
+      }
+      const failBadge=catFails?`<span style="float:right;font-size:11px;font-weight:700;color:var(--fail)">${catFails} fail</span>`:`<span style="float:right;font-size:11px;font-weight:400;color:var(--muted)">0 fail</span>`;
+      h+=`<tr class="cat-row"><td colspan="${pets.length+1}" style="border-left:4px solid ${cc};box-shadow:inset 4px 0 0 ${cc}"><span class="cat-label" style="color:${cc};background:${cc}15">${ci} <span contenteditable="true" spellcheck="false" onblur="renameCat('${thisCat}',this.textContent)" style="outline:none;cursor:text">${thisCat}</span></span> <span style="font-size:10px;color:var(--muted);font-weight:400">(${span}项)</span>${failBadge}</td></tr>`;
       lastCat=thisCat;
     }
-    h+=`<tr><td class="rh gh" style="border-left:3px solid ${g.color};position:relative">${g.title}
+    // Split title: main part vs parenthesized detail
+    const titleRaw=g.title;
+    const pIdx=titleRaw.indexOf('（');
+    const pIdx2=pIdx===-1?titleRaw.indexOf('('):pIdx;
+    let mainTitle=titleRaw,subDetail='';
+    if(pIdx2>0){mainTitle=titleRaw.substring(0,pIdx2).trim();subDetail=titleRaw.substring(pIdx2);}
+    const subHtml=subDetail?`<span class="rh-sub" title="${subDetail.replace(/"/g,'&quot;')}">${subDetail}</span>`:'';
+    h+=`<tr data-gid="${g.id}" style="--cat-c:${g.color}"><td class="rh gh" style="border-left:3px solid ${g.color};position:relative"><span class="rh-main">${mainTitle}</span>${subHtml}
       <span class="ra"><button class="rab" title="编辑" onclick="editGrp(${gi})">✏️</button><button class="rab del" title="删除" onclick="delGrp(${gi})">✕</button></span>
     </td>`;
     pets.forEach((p,pi)=>{
@@ -462,6 +544,8 @@ function renderTable(){
   });
   h+='</tbody></table>';
   document.getElementById('tableWrap').innerHTML=h;
+  initColHighlight();
+  applyFilter();
   // Paste listeners
   pets.forEach((p,pi)=>{
     const el=document.getElementById('av-'+pi);
@@ -588,7 +672,7 @@ function doOpenBug(pi,gid){
 function doCopyBug(pi,gid){
   closeCtxMenu();
   const p=curVer().pets[pi];if(!p.bugs)return;
-  const url=fixUrl(p.bugs['bug__'+gid+'__'+pi]||'');
+  const url=bugTextToUrl(p.bugs['bug__'+gid+'__'+pi]||'');
   if(!url)return;
   navigator.clipboard.writeText(url).then(()=>toast('链接已复制到剪贴板')).catch(()=>{
     prompt('复制链接:',url);
@@ -600,7 +684,7 @@ function showModal(id){document.getElementById(id).classList.add('show')}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 document.querySelectorAll('.modal-bg').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')})});
 
-function addVersion(){const n=document.getElementById('f_ver').value.trim();if(!n)return toast('请输入版本号','var(--fail)');const id='v'+Date.now();app.versions.push({id,name:n,pets:[],checkGroups:JSON.parse(JSON.stringify(DEFAULT_GROUPS))});app.currentVersion=id;closeModal('addVerModal');render();toast('版本已创建')}
+function addVersion(){const n=document.getElementById('f_ver').value.trim();if(!n)return toast('请输入版本号','var(--fail)');const id='v'+Date.now();const srcGroups=curVer()&&curVer().checkGroups&&curVer().checkGroups.length?curVer().checkGroups:DEFAULT_GROUPS;app.versions.push({id,name:n,pets:[],checkGroups:JSON.parse(JSON.stringify(srcGroups))});app.currentVersion=id;closeModal('addVerModal');render();toast('版本已创建（已继承检查项）')}
 function showAddPetModal(){if(!curVer())return toast('请先创建版本','var(--fail)');showModal('addPetModal');['f_name','f_tid','f_source','f_avatar'].forEach(id=>document.getElementById(id).value='')}
 function addPet(){const n=document.getElementById('f_name').value.trim();if(!n)return toast('请输入名称','var(--fail)');curVer().pets.push({name:n,templateId:document.getElementById('f_tid').value.trim(),rarity:document.getElementById('f_rarity').value,petType:document.getElementById('f_type').value,source:document.getElementById('f_source').value.trim(),avatar:document.getElementById('f_avatar').value.trim(),checks:{}});closeModal('addPetModal');render();toast('已添加 '+n)}
 
@@ -617,6 +701,43 @@ function saveSrcCustom(pi,inp){
   const t=inp.value.trim();
   if(t){curVer().pets[pi].source=t}
   saveToServer();
+}
+
+// === 检查项跨版本同步 ===
+function syncGroupToOtherVersions(item, insertIdx, action){
+  const curId=app.currentVersion;
+  let synced=0;
+  app.versions.forEach(v=>{
+    if(v.id===curId)return; // 跳过当前版本（已经处理了）
+    if(!v.checkGroups||!v.checkGroups.length)v.checkGroups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+    
+    if(action==='add'){
+      // 检查是否已有同ID的检查项
+      if(v.checkGroups.some(g=>g.id===item.id))return;
+      // 在同分类末尾插入
+      let idx=v.checkGroups.length;
+      for(let i=v.checkGroups.length-1;i>=0;i--){
+        if(v.checkGroups[i].cat===item.cat){idx=i+1;break}
+      }
+      v.checkGroups.splice(idx,0,JSON.parse(JSON.stringify(item)));
+      synced++;
+    }
+    else if(action==='delete'){
+      const idx=v.checkGroups.findIndex(g=>g.id===item.id);
+      if(idx>=0){
+        const gid=v.checkGroups[idx].id;
+        v.checkGroups.splice(idx,1);
+        // 同时清理宠物的 checks
+        (v.pets||[]).forEach(p=>{if(p.checks)delete p.checks[gid]});
+        synced++;
+      }
+    }
+    else if(action==='rename'){
+      const g=v.checkGroups.find(g=>g.id===item.id);
+      if(g){g.title=item.title;synced++}
+    }
+  });
+  if(synced)console.log(`[sync] ${action} "${item.title||item.id}" → 同步 ${synced} 个版本`);
 }
 
 function renameCat(oldName,newName){
@@ -656,19 +777,30 @@ function addGroupRow(){
   for(let i=gs.length-1;i>=0;i--){if(gs[i].cat===catChoice){insertIdx=i+1;break}}
   const newItem={id:'ck_'+Date.now(),cat:catChoice,title:label.trim(),color:cc};
   gs.splice(insertIdx,0,newItem);
-  render();toast('已添加到「'+catChoice+'」');
+  // 同步新检查项到所有其他版本
+  syncGroupToOtherVersions(newItem,insertIdx,'add');
+  render();toast('已添加到「'+catChoice+'」（已同步所有赛季）');
 }
 function editGrp(gi){
   ensureGroups();const g=curVer().checkGroups[gi];
   const t=prompt('编辑检查项:',g.title);
-  if(!t||!t.trim())return;g.title=t.trim();render();toast('已更新');
+  if(!t||!t.trim())return;
+  const oldTitle=g.title;
+  g.title=t.trim();
+  // 同步重命名到所有版本
+  syncGroupToOtherVersions({id:g.id,title:t.trim(),oldTitle},gi,'rename');
+  render();toast('已更新（已同步所有赛季）');
 }
 function delGrp(gi){
   ensureGroups();const g=curVer().checkGroups[gi];
-  if(!confirm('删除「'+g.title.slice(0,25)+'」?'))return;
-  const gid=g.id;curVer().checkGroups.splice(gi,1);
+  if(!confirm('删除「'+g.title.slice(0,25)+'」?\n将同步删除所有赛季中的此检查项'))return;
+  const gid=g.id;
+  // 同步删除到所有版本
+  syncGroupToOtherVersions(g,gi,'delete');
+  // 删除当前版本的
+  curVer().checkGroups.splice(gi,1);
   curVer().pets.forEach(p=>{if(p.checks)delete p.checks[gid]});
-  render();toast('已删除','var(--fail)');
+  render();toast('已删除（已同步所有赛季）','var(--fail)');
 }
 
 // Avatar — single-click = select, double-click = file picker
@@ -804,6 +936,43 @@ async function showLoadModal(){
   }catch(e){document.getElementById('seasonPills').innerHTML=''}
 }
 function pickSeason(s,btn){document.getElementById('loadSeasonInput').value=s;document.querySelectorAll('.season-pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');doLoadQuery()}
+
+// === 快速赛季查询（顶栏） ===
+async function quickSeasonQuery(){
+  const raw=document.getElementById('quickSeasonInput').value;
+  if(!raw.trim())return toast('请输入赛季号','var(--fail)');
+  const season=normSeason(raw);
+  if(!curVer())return toast('请先创建版本','var(--fail)');
+
+  toast('⏳ 查询 '+season+' ...','#0891b2');
+  try{
+    const r=await fetch(API+'/api/query_pets?season='+encodeURIComponent(season));
+    const d=await r.json();
+    if(!d.success){toast(d.error||'查询失败','var(--fail)');return}
+    if(!d.pets.length){toast('赛季 '+season+' 无数据，请先通过 MCP 灌入数据','var(--pending)');return}
+    // 自动载入到当前版本
+    const tv=curVer();
+    const exist=new Set(tv.pets.map(p=>p.name));
+    let added=0,skip=0;
+    d.pets.forEach(p=>{
+      if(exist.has(p.name)){skip++;return}
+      exist.add(p.name);
+      tv.pets.push({
+        name:p.name,
+        templateId:String(Math.round(p.id)),
+        rarity:r2rarity(p.rank),
+        petType:r2petType(p.petType),
+        source:'',avatar:'',checks:{},
+        _raw:{id:p.id,rank:p.rank,score:p.score,petType:p.petType,obtainMethod:p.obtainMethod,openSeason:p.openSeason}
+      });
+      added++;
+    });
+    render();
+    const msg=`✅ ${season}: 载入 ${added} 个宠物` + (skip?` (跳过 ${skip} 重复)`:'');
+    toast(msg);
+    document.getElementById('quickSeasonInput').value='';
+  }catch(e){toast('请求失败: '+e.message,'var(--fail)')}
+}
 async function doLoadQuery(){
   const raw=document.getElementById('loadSeasonInput').value;if(!raw.trim())return toast('输入版本号','var(--fail)');
   const season=normSeason(raw);
@@ -831,7 +1000,7 @@ function doLoadConfirm(){
   let tv;
   if(document.getElementById('loadMode').value==='new'){
     const s=normSeason(document.getElementById('loadSeasonInput').value);
-    const id='v'+Date.now();app.versions.push({id,name:'S'+s+'赛季',pets:[],checkGroups:JSON.parse(JSON.stringify(DEFAULT_GROUPS))});app.currentVersion=id;tv=app.versions.find(v=>v.id===id);
+    const id='v'+Date.now();const srcGroups=curVer()&&curVer().checkGroups&&curVer().checkGroups.length?curVer().checkGroups:DEFAULT_GROUPS;app.versions.push({id,name:'S'+s+'赛季',pets:[],checkGroups:JSON.parse(JSON.stringify(srcGroups))});app.currentVersion=id;tv=app.versions.find(v=>v.id===id);
   }else tv=curVer();
   const exist=new Set(tv.pets.map(p=>p.name));let added=0,skip=0;
   sel.forEach(i=>{
@@ -845,6 +1014,19 @@ function exportAll(){const b=new Blob([JSON.stringify(app,null,2)],{type:'applic
 function importAll(){document.getElementById('fileIn').click()}
 function handleImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.versions){app=d;render();toast('导入成功')}else toast('格式错误','var(--fail)')}catch(err){toast('失败','var(--fail)')}};r.readAsText(f);e.target.value=''}
 function toast(msg,bg){const e=document.getElementById('toast');e.textContent=msg;e.style.background=bg||'var(--pass)';e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
+
+// table-wrap 独立滚动容器：高度 = viewport - 上方所有元素高度
+function setTableWrapH(){
+  const tw=document.getElementById('tableWrap');
+  if(!tw)return;
+  const rect=tw.getBoundingClientRect();
+  tw.style.height=(window.innerHeight - rect.top)+'px';
+}
+document.addEventListener('DOMContentLoaded',setTableWrapH);
+window.addEventListener('resize',setTableWrapH);
+// 每次 render 后也需要重算（vtabs/statsBar 可能撑高）
+const _origRender=render;
+render=function(){_origRender();setTimeout(setTableWrapH,50)};
 
 (async()=>{await loadFromServer();render();loadDataStatus()})();
 
@@ -903,46 +1085,48 @@ function saveNote(){
   if(txt||img)p.notes[key]={text:txt,img:img.startsWith('data:')?img:''};
   else delete p.notes[key];
   closeModal('noteModal');noteEditState=null;
-  saveData();render();toast('备注已保存');
+  saveToServer();render();toast('备注已保存');
 }
 
-// === 失败汇总 ===
-function showFailSummary(){
-  const v=curVer();if(!v)return toast('请先选择版本','var(--fail)');
-  let rows=[];
-  v.pets.forEach((p,pi)=>{
-    (v.checkGroups||[]).forEach(g=>{
-      const s=(p.checks&&p.checks[g.id])||'';
-      if(s==='fail'){
-        const bugKey='bug__'+g.id+'__'+pi;
-        const bug=(p.bugs&&p.bugs[bugKey])||'';
-        rows.push({pet:p.name,group:g.cat||'',item:g.title,bug,pi,gid:g.id});
-      }
-    });
+
+
+// Column hover highlight
+function initColHighlight(){
+  const tbl=document.querySelector('table.mt');if(!tbl)return;
+  tbl.addEventListener('mouseover',function(e){
+    const td=e.target.closest('td,th');if(!td)return;
+    const ci=td.cellIndex;if(ci<=0)return;
+    tbl.querySelectorAll('.col-hl').forEach(el=>el.classList.remove('col-hl'));
+    tbl.querySelectorAll('tr').forEach(tr=>{const c=tr.cells[ci];if(c)c.classList.add('col-hl')});
   });
-  let h='';
-  if(!rows.length){h='<p style="text-align:center;color:var(--muted);padding:20px">🎉 没有失败项!</p>';}
-  else{
-    h='<p style="font-size:12px;color:var(--muted);margin-bottom:8px">共 '+rows.length+' 项失败</p>';
-    h+='<table class="fail-summary-table"><thead><tr><th>宠物</th><th>分组</th><th>检查项</th><th>Bug</th><th>操作</th></tr></thead><tbody>';
-    rows.forEach((r,ri)=>{
-      const bugHtml=r.bug?'<a class="bug-link" href="'+fixUrl(r.bug)+'" target="_blank">'+r.bug+'</a>':'<span style="color:var(--muted)">未关联</span>';
-      h+='<tr><td>'+r.pet+'</td><td>'+r.group+'</td><td>'+r.item+'</td><td>'+bugHtml+'</td>';
-      h+='<td><button class="btn btn-sm" style="font-size:11px;padding:2px 8px" onclick="failToPass('+r.pi+',\''+r.gid+'\','+ri+')">✅ Pass</button></td></tr>';
-    });
-    h+='</tbody></table>';
-  }
-  document.getElementById('failBody').innerHTML=h;
-  showModal('failModal');
-}
-function failToPass(pi,gid,ri){
-  const p=curVer().pets[pi];if(!p)return;
-  if(!p.checks)p.checks={};
-  p.checks[gid]='pass';
-  if(currentUser){if(!p.stamps)p.stamps={};p.stamps[gid+'__'+pi]=currentUser;}
-  saveData();render();showFailSummary();toast('已改为 Pass');
+  tbl.addEventListener('mouseleave',function(){
+    tbl.querySelectorAll('.col-hl').forEach(el=>el.classList.remove('col-hl'));
+  });
 }
 
+// Filter chips
+let activeFilter='all';
+function setFilter(f){
+  activeFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.toggle('active',c.dataset.filter===f));
+  applyFilter();
+}
+function applyFilter(){
+  const tbl=document.querySelector('table.mt');if(!tbl)return;
+  const gs=getGroups(),v=curVer();if(!v)return;
+  tbl.querySelectorAll('tbody tr').forEach(tr=>{
+    if(tr.classList.contains('cat-row')){tr.style.display='';return}
+    const gid=tr.dataset.gid;if(!gid){tr.style.display='';return}
+    if(activeFilter==='all'){tr.style.display='';return}
+    let show=false;
+    v.pets.forEach(p=>{
+      const s=(p.checks&&p.checks[gid])||'';
+      if(activeFilter==='fail'&&s==='fail')show=true;
+      if(activeFilter==='pending'&&(s===''||s==='pending'))show=true;
+    });
+    tr.style.display=show?'':'none';
+  });
+}
 </script>
 </body>
 </html>

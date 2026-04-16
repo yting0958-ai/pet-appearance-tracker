@@ -154,6 +154,9 @@ def query_pets():
     """
     查询指定赛季的宠物外观
     参数: season=3.3.3
+    支持两种数据源:
+      1. 优先: 从 Config MCP 实时查询 (需要 mcp_bridge 服务)
+      2. 兜底: 从本地 pet_data.json 筛选
     """
     season = request.args.get('season', '').strip()
     if not season:
@@ -164,8 +167,6 @@ def query_pets():
         season = '.'.join(season)
 
     all_data = load_pet_data()
-    if not all_data:
-        return jsonify({"success": False, "error": "暂无数据，请先刷新数据"})
 
     # 筛选匹配的赛季
     results = []
@@ -181,6 +182,51 @@ def query_pets():
         "total": len(results),
         "pets": results,
         "all_seasons": get_all_seasons(all_data),
+    })
+
+
+@app.route('/api/inject_pets', methods=['POST'])
+def inject_pets():
+    """
+    注入宠物数据（追加模式，去重）
+    前端或脚本可以把 MCP 查询结果直接 POST 到这里
+    Body: {"rows": [...]} 或 [...]
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "无数据"})
+
+    rows = data if isinstance(data, list) else data.get('rows', data.get('pets', []))
+    if not rows:
+        return jsonify({"success": False, "error": "rows/pets 为空"})
+
+    existing = load_pet_data()
+    existing_ids = {p.get('id') for p in existing}
+    added = 0
+
+    for r in rows:
+        pet = {
+            'id': int(r.get('Id') or r.get('id') or 0),
+            'name': str(r.get('Name') or r.get('name') or ''),
+            'rank': int(r.get('Rank') or r.get('rank') or 0),
+            'score': int(r.get('Score') or r.get('score') or 0),
+            'petType': int(r.get('PetType') or r.get('petType') or 0),
+            'obtainMethod': str(r.get('ObtainMethod') or r.get('obtainMethod') or ''),
+            'openSeason': str(r.get('OpenSeason') or r.get('openSeason') or ''),
+            'status': 0,
+        }
+        if pet['id'] and pet['id'] not in existing_ids:
+            existing.append(pet)
+            existing_ids.add(pet['id'])
+            added += 1
+
+    existing.sort(key=lambda x: x.get('id', 0))
+    save_pet_data(existing)
+    return jsonify({
+        "success": True,
+        "added": added,
+        "total": len(existing),
+        "message": f"新增 {added} 条，总计 {len(existing)} 条"
     })
 
 
@@ -213,11 +259,26 @@ def refresh_data():
     1. 上传 JSON 数据 (body 传 JSON 数组)
     2. 从本地 lua 文件解析
     3. 未来可扩展: 调用 Config MCP
+    
+    传 append=true 追加而非覆盖
     """
     # 方式1: 直接上传 JSON
     if request.is_json:
         data = request.get_json()
+        append_mode = False
+        if isinstance(data, dict):
+            append_mode = data.get('append', False)
+        
         if isinstance(data, list):
+            if append_mode:
+                existing = load_pet_data()
+                existing_ids = {p.get('id') for p in existing}
+                for item in data:
+                    if item.get('id') not in existing_ids:
+                        existing.append(item)
+                        existing_ids.add(item.get('id'))
+                save_pet_data(existing)
+                return jsonify({"success": True, "message": f"追加后共 {len(existing)} 条数据", "total": len(existing)})
             save_pet_data(data)
             return jsonify({"success": True, "message": f"已更新 {len(data)} 条数据", "total": len(data)})
         elif isinstance(data, dict) and 'rows' in data:
@@ -233,7 +294,17 @@ def refresh_data():
                     'petType': r.get('PetType') or r.get('petType'),
                     'obtainMethod': r.get('ObtainMethod__text') or r.get('obtainMethod', ''),
                     'openSeason': r.get('OpenSeason__text') or r.get('openSeason', ''),
+                    'status': r.get('Status') or r.get('status', 0),
                 })
+            if append_mode:
+                existing = load_pet_data()
+                existing_ids = {p.get('id') for p in existing}
+                for item in pets:
+                    if item.get('id') not in existing_ids:
+                        existing.append(item)
+                        existing_ids.add(item.get('id'))
+                save_pet_data(existing)
+                return jsonify({"success": True, "message": f"追加后共 {len(existing)} 条", "total": len(existing)})
             save_pet_data(pets)
             return jsonify({"success": True, "message": f"已更新 {len(pets)} 条数据", "total": len(pets)})
 
